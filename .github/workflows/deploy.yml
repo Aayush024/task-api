@@ -21,10 +21,14 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/task-api:latest .
+          docker build --pull --no-cache \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/task-api:${{ github.sha }} \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/task-api:latest \
+            .
 
       - name: Push Docker image
         run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/task-api:${{ github.sha }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/task-api:latest
 
   deploy:
@@ -46,18 +50,21 @@ jobs:
         run: |
           ssh -i ~/.ssh/task-api-key.pem ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
 
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/task-api:latest
+            set -e
+
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/task-api:${{ github.sha }}
 
             docker stop task-api-container || true
-
             docker rm task-api-container || true
 
             docker run -d \
               --restart unless-stopped \
               -p 5000:5000 \
               --name task-api-container \
-              ${{ secrets.DOCKERHUB_USERNAME }}/task-api:latest
+              ${{ secrets.DOCKERHUB_USERNAME }}/task-api:${{ github.sha }}
 
+            sleep 3
             docker ps
+            curl --fail http://localhost:5000/health
 
           EOF
