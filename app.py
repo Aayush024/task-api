@@ -21,9 +21,10 @@ tasks = [
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({
-        "status": "healthy"
+        "status": "healthy",
+        "version": "v2",
+        "deployment": "github-actions"
     })
-
 
 @app.route("/tasks", methods=["GET"])
 def get_tasks():
