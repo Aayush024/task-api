@@ -22,8 +22,8 @@ tasks = [
 def health():
     return jsonify({
         "status": "healthy",
-        "version": "v2",
-        "deployment": "github-actions"
+        "version": "v3",
+        "deployment": "terraform-github-actions"
     })
 
 @app.route("/tasks", methods=["GET"])
