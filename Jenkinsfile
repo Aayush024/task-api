@@ -4,6 +4,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'ayushkamble024/task-api'
+        EC2_HOST = '15.207.254.12'
     }
 
     stages {
