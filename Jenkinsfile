@@ -2,6 +2,10 @@ pipeline {
 
     agent any
 
+    environment {
+        DOCKER_IMAGE = 'ayushkamble024/task-api'
+    }
+
     stages {
 
         stage('Checkout') {
@@ -33,7 +37,37 @@ pipeline {
         stage('Docker Build') {
             steps {
                 sh '''
-                    docker build -t task-api:jenkins .
+                    docker build \
+                        -t ${DOCKER_IMAGE}:${BUILD_NUMBER} \
+                        -t ${DOCKER_IMAGE}:latest \
+                        .
+                '''
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKERHUB_USER',
+                        passwordVariable: 'DOCKERHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        echo "$DOCKERHUB_TOKEN" | docker login \
+                        -u "$DOCKERHUB_USER" \
+                        --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                sh '''
+                    docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                    docker push ${DOCKER_IMAGE}:latest
                 '''
             }
         }
