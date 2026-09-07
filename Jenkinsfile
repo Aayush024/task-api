@@ -78,7 +78,7 @@ pipeline {
             steps {
                 sshagent(credentials: ['app-ec2-ssh']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no ec2-user@${APP_HOST} "
+                        ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} "
                             docker pull ${DOCKER_IMAGE}:${BUILD_NUMBER}
                         "
                     '''
