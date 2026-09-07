@@ -5,6 +5,11 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'ayushkamble024/task-api'
         EC2_HOST = '15.207.254.12'
+
+        DB_HOST = 'task-api-postgres.cl48i4y00vhl.ap-south-1.rds.amazonaws.com'
+        DB_PORT = '5432'
+        DB_NAME = 'taskdb'
+        DB_USER = 'taskuser'
     }
 
     stages {
@@ -88,7 +93,7 @@ pipeline {
                     sshagent(credentials: ['app-ec2-ssh']) {
 
                         sh '''
-                            ssh -o StrictHostKeyChecking=no ec2-user@${APP_HOST} '
+                            ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} '
 
                                 docker pull ${DOCKER_IMAGE}:${BUILD_NUMBER}
 
