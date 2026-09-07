@@ -75,13 +75,40 @@ pipeline {
 
 
         stage('Deploy') {
+
             steps {
-                sshagent(credentials: ['app-ec2-ssh']) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} "
-                            docker pull ${DOCKER_IMAGE}:${BUILD_NUMBER}
-                        "
-                    '''
+
+                withCredentials([
+                    string(
+                        credentialsId: 'rds-db-password',
+                        variable: 'DB_PASSWORD'
+                    )
+                ]) {
+
+                    sshagent(credentials: ['app-ec2-ssh']) {
+
+                        sh '''
+                            ssh -o StrictHostKeyChecking=no ec2-user@${APP_HOST} '
+
+                                docker pull ${DOCKER_IMAGE}:${BUILD_NUMBER}
+
+                                docker stop task-api-container || true
+
+                                docker rm task-api-container || true
+
+                                docker run -d \
+                                --name task-api-container \
+                                -p 5000:5000 \
+                                -e DB_HOST="${DB_HOST}" \
+                                -e DB_PORT="${DB_PORT}" \
+                                -e DB_NAME="${DB_NAME}" \
+                                -e DB_USER="${DB_USER}" \
+                                -e DB_PASSWORD="${DB_PASSWORD}" \
+                                ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                            '
+                        '''
+
+                    }
                 }
             }
         }
